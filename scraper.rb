@@ -1,7 +1,8 @@
 require "selenium-webdriver"
 require "pry"
 
-PokemonSale = Struct.new(:price)
+PokemonSale = Struct.new(:date, :condition, :quantity, :price)
+pokemon_sales = []
 
 options = Selenium::WebDriver::Chrome::Options.new
 options.add_argument("--headless")
@@ -21,9 +22,18 @@ view_more_data.click
 driver.manage.timeouts.implicit_wait = 10
 
 
-sales_history_snapshot = driver.find_elements(:css, "section.latest-sales.sales-history-snapshot__latest-sales")
+sales_history_snapshot_2 = driver.find_element(:css, "ul.is-modal")
+sales_list = sales_history_snapshot_2.find_elements(:css, "li")
 
+sales_list.each do |sale|
+    date = sale.find_element(:css, "span.date").text
+    condition = sale.find_element(:css, "span.condition").text
+    quantity = sale.find_element(:css, "span.quantity").text
+    price = sale.find_element(:css, "span.price").text
 
+    pokemon_sale = PokemonSale.new(date, condition, quantity, price)
+    pokemon_sales << pokemon_sale
+end
 
 
 driver.quit
