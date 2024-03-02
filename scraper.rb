@@ -1,5 +1,6 @@
 require "selenium-webdriver"
 require "pry"
+require "csv"
 
 PokemonSale = Struct.new(:date, :condition, :quantity, :price)
 pokemon_sales = []
@@ -8,7 +9,7 @@ options = Selenium::WebDriver::Chrome::Options.new
 options.add_argument("--headless")
 driver = Selenium::WebDriver.for :chrome, options: options
 
-driver.navigate.to "https://www.tcgplayer.com/product/274461/Pokemon-Pokemon%20GO-Pikachu%2028?xid=adfe8e697-33fa-4146-8c9a-8d0208073684&Language=English" 
+driver.navigate.to "https://www.tcgplayer.com/product/527885/pokemon-trading-card-game-classic-venusaur?xid=pi632ed4eb-830d-4d03-9d3f-c0e8baa9fd90&page=1&Language=English" 
 driver.manage.timeouts.implicit_wait = 10
 
 latest_sales = driver.find_element(:css, "section.latest-sales") #pulls 3 most recent sales, try latest_sales.text
@@ -32,7 +33,14 @@ sales_list.each do |sale|
     price = sale.find_element(:css, "span.price").text
 
     pokemon_sale = PokemonSale.new(date, condition, quantity, price)
-    pokemon_sales << pokemon_sale
+    pokemon_sales << pokemon_sale 
+end
+
+csv_headers = ["date", "condition", "quantity", "price"]
+CSV.open("output.csv", "wb", write_headers: true, headers: csv_headers) do |csv|
+    pokemon_sales.each do |pokemon_sale|
+        csv << pokemon_sale
+    end
 end
 
 
