@@ -1,9 +1,10 @@
 require "selenium-webdriver"
 require "interactor"
-require "pry"
+require_relative "search_card"
 
 
 class ScrapingOrganizer
     include Interactor::Organizer
 
+    organize SearchCard
 end

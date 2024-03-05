@@ -10,7 +10,7 @@ class ScraperMain
     
     def initialize
         @options = Selenium::WebDriver::Chrome::Options.new
-                    @options.add_argument("--headless")
+                    # @options.add_argument("--headless")
         @driver = Selenium::WebDriver.for :chrome, options: @options
         @search_str = "blastoise"
         @driver.get "https://www.tcgplayer.com/"
@@ -23,7 +23,6 @@ class ScraperMain
             wait: @wait,
             search_str: @search_str
         )
-        binding.pry
         @driver.quit
     end
 end
