@@ -8,6 +8,7 @@ include Interactor
  
     def call
         create_cards(context.driver, context.wait)
+        next_page(context.driver)
     end
 
     private
@@ -33,5 +34,11 @@ include Interactor
             card_variants << card_variant
         end
         card_variants
+    end
+
+    def next_page(driver)
+        pagination_buttons = driver.find_elements(:css, "a.tcg-button.tcg-button--md.tcg-standard-button.tcg-standard-button--flat")
+        next_page_link = pagination_buttons.last.attribute("href")
+        driver.get next_page_link
     end
 end
