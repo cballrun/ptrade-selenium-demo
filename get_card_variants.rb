@@ -8,7 +8,6 @@ include Interactor
     CardVariant = Struct.new(:link, :set, :name, :rarity, :count, :low, :market, keyword_init: true)
  
     def call
-        card_variants = []
         CSV.open("variants.csv", "wb", write_headers: true, headers: ["link", "set", "name", "rarity", "count", "low", "market"]) do |csv|
             while next_page_button_visible?(context.wait, context.driver) do
                 create_cards(context.driver, context.wait, csv)
@@ -36,7 +35,6 @@ include Interactor
     end
 
     def create_cards(driver, wait, csv)
-        card_variants = []
         variants = find_variants(driver, wait)
         variants.each do |variant|
           link = variant.find_element(:css, "a")&.attribute("href")
