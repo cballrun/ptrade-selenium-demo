@@ -1,16 +1,20 @@
 require "selenium-webdriver"
 require "interactor"
+require "csv"
 require "pry"
 
 class GetCardVariants
 include Interactor
-    CardVariant = Struct.new(:link, :set, :name) #look into rarity, market price, count, low
+    CardVariant = Struct.new(:link, :set, :name, :rarity, :count, :low, :market, keyword_init: true)
  
     def call
-        while next_page_button_visible?(context.wait, context.driver) do
-            create_cards(context.driver, context.wait)
-            next_page_link(context.driver)
-            next_page_button(context.driver)
+        card_variants = []
+        CSV.open("variants.csv", "wb", write_headers: true, headers: ["link", "set", "name", "rarity", "count", "low", "market"]) do |csv|
+            while next_page_button_visible?(context.wait, context.driver) do
+                create_cards(context.driver, context.wait, csv)
+                next_page_link(context.driver)
+                next_page_button(context.driver)
+            end
         end
     end
 
@@ -22,21 +26,30 @@ include Interactor
         end
     end
 
-    def create_cards(driver, wait)
+    def safe_find_element(driver, css_selector)
+        begin
+            element = driver.find_element(css: css_selector)
+        rescue Selenium::WebDriver::Error::NoSuchElementError
+            element = nil
+        end
+        element
+    end
+
+    def create_cards(driver, wait, csv)
         card_variants = []
         variants = find_variants(driver, wait)
         variants.each do |variant|
-            link = variant.find_element(:css, "a").attribute("href")
-            set = variant.find_element(:css, "h4").text
-            name = variant.find_element(:css, "span.search-result__title").text
-            # count = variant.find_element(:css, "span.inventory__listing-count.inventory__listing-count-block").text
-            # low = variant.find_element(:css, "span.inventory__price").text
-            # market = variant.find_element(:css, "span.search-result__market-price--value").text
-
-            card_variant = CardVariant.new(link, set, name)
-            card_variants << card_variant
+          link = variant.find_element(:css, "a")&.attribute("href")
+          set = safe_find_element(variant, "h4")&.text
+          name = safe_find_element(variant, "span.search-result__title")&.text
+          rarity = safe_find_element(variant, "section.search-result__rarity")&.text
+          count = safe_find_element(variant, "span.inventory__listing-count.inventory__listing-count-block")&.text
+          low = safe_find_element(variant, "span.inventory__price")&.text
+          market = safe_find_element(variant, "span.search-result__market-price--value")&.text
+      
+          card_variant = CardVariant.new(link: link, set: set, name: name, rarity: rarity, count: count, low: low, market: market)
+          csv << card_variant.to_a
         end
-        print card_variants.count
     end
 
     def next_page_button(driver)
